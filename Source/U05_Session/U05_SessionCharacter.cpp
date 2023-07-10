@@ -45,6 +45,8 @@ AU05_SessionCharacter::AU05_SessionCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+	
+	//GetCharacterMovement()->MaxWalkSpeed = 20.f;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -56,6 +58,7 @@ void AU05_SessionCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &AU05_SessionCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AU05_SessionCharacter::MoveRight);
@@ -74,6 +77,9 @@ void AU05_SessionCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AU05_SessionCharacter::OnResetVR);
+
+	//PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &AU05_SessionCharacter::OnSprint);
+	//PlayerInputComponent->BindAction("Sprint", IE_Released, this, &AU05_SessionCharacter::OffSprint);
 }
 
 
@@ -131,4 +137,14 @@ void AU05_SessionCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AU05_SessionCharacter::OnSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 3000.f;
+}
+
+void AU05_SessionCharacter::OffSprint()
+{
+	GetCharacterMovement()->MaxWalkSpeed = 600.f;
 }
