@@ -33,30 +33,47 @@ void ACMovingPlatform::BeginPlay()
 	GlobalTargetLocation = GetTransform().TransformPosition(TargetLocation);
 }
 
+void ACMovingPlatform::IncreaseActive()
+{
+	Active++;
+}
+
+void ACMovingPlatform::DecreaseActive()
+{
+	if(Active > 0)
+		Active--;
+}
+
 void ACMovingPlatform::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// 서버에서만 이동
-	if (HasAuthority() == true)
+	// Active가 1 이상인 경우에만
+	if (Active > 0)
 	{
-
-		FVector location = GetActorLocation();
-
-		float totalDistance = (GlobalStartLocation - GlobalTargetLocation).Size();
-		float currentDistance = (location - GlobalStartLocation).Size();
-
-		if (currentDistance >= totalDistance)
+		// 서버에서만 이동
+		if (HasAuthority() == true)
 		{
-			FVector temp = GlobalStartLocation;
-			GlobalStartLocation = GlobalTargetLocation;
-			GlobalTargetLocation = temp;
+
+			FVector location = GetActorLocation();
+
+			float totalDistance = (GlobalStartLocation - GlobalTargetLocation).Size();
+			float currentDistance = (location - GlobalStartLocation).Size();
+
+			if (currentDistance >= totalDistance)
+			{
+				FVector temp = GlobalStartLocation;
+				GlobalStartLocation = GlobalTargetLocation;
+				GlobalTargetLocation = temp;
+			}
+
+			FVector direction = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal();
+
+			location += direction * Speed * DeltaTime;
+			SetActorLocation(location);
 		}
-
-		FVector direction = (GlobalTargetLocation - GlobalStartLocation).GetSafeNormal();
-
-		location += direction * Speed * DeltaTime;
-		SetActorLocation(location);
 	}
+
+	
 
 }
