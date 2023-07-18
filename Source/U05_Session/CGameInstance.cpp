@@ -1,6 +1,7 @@
 #include "CGameInstance.h"
 #include "Global.h"
 #include "Blueprint/UserWidget.h"
+#include "Widgets/CMenu.h"
 
 UCGameInstance::UCGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -15,36 +16,24 @@ void UCGameInstance::Init()
 	Super::Init();
 
 	CLog::Log("GameInstance::Init Called");
-
-	//CreateWidget(this, )
 }
 
 void UCGameInstance::LoadMenu()
 {
 	CheckNull(MenuWidgetClass);
+	
+	Menu = CreateWidget<UCMenu>(this, MenuWidgetClass);
+	CheckNull(Menu);
 
-	UUserWidget* menu = CreateWidget(this, MenuWidgetClass);
-	CheckNull(menu);
-
-	menu->AddToViewport();
-
-	APlayerController* controller = GetFirstLocalPlayerController();
-	CheckNull(controller);
-
-	// º° µµ¿ò¾ÈµÊ
-	menu->bIsFocusable = true;
-
-	FInputModeUIOnly inputMode;
-	inputMode.SetWidgetToFocus(menu->TakeWidget());
-	inputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	controller->SetInputMode(inputMode);
-	controller->bShowMouseCursor = true;
-
+	Menu->SetOwingGameInstance(this);
+	Menu->Attach();
 }
 
 void UCGameInstance::Host()
 {
+	if (!!Menu)
+		Menu->Detach();
+
 	CLog::Print("Host");
 	//-> Everybody Move to Play Map
 	UWorld* world = GetWorld();

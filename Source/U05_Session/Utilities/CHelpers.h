@@ -13,7 +13,7 @@
 #define CheckTrueResult(p, result) { if (p == true) return result; }
 
 #define CheckFalse(p) { if (p == false) return; }
-#define CheckFalseResultr(p, result) { if (p == false) return result; }
+#define CheckFalseResult(p, result) { if (p == false) return result; }
 
 
 //--------------------------------------------------------------------------------
