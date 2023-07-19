@@ -16,4 +16,5 @@ class U05_SESSION_API IIMenuInterface
 
 public:
 	virtual void Host() = 0;
+	virtual void Join(const FString& InAddress) = 0;
 };

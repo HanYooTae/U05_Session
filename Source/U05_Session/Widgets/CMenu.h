@@ -1,12 +1,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
-#include "IMenuInterface.h"
+#include "CMenuBase.h"
 #include "CMenu.generated.h"
 
 UCLASS()
-class U05_SESSION_API UCMenu : public UUserWidget
+class U05_SESSION_API UCMenu : public UCMenuBase
 {
 	GENERATED_BODY()
 	
@@ -17,11 +16,15 @@ private:
 	UFUNCTION()
 		void HostServer();
 
-public:
-	void SetOwingGameInstance(IIMenuInterface* InOwingInterface);
+	UFUNCTION()
+		void JoinServer();
 
-	void Attach();
-	void Detach();
+	UFUNCTION()
+		void OpenJoinMenu();
+
+	UFUNCTION()
+		void OpenMainMenu();
+
 
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -30,6 +33,25 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UButton* JoinButton;
 
-private:
-	IIMenuInterface* OwingGameInstance;
+	UPROPERTY(meta = (BindWidget))
+		class UButton* CancelJoinMenuButton;
+
+	UPROPERTY(meta = (BindWidget))
+		class UButton* ConfirmJoinMenuButton;
+	
+	UPROPERTY(meta = (BindWidget))
+		class UEditableTextBox* IPAddressField;
+
+	UPROPERTY(meta = (BindWidget))
+		class UWidgetSwitcher* MenuSwitcher;
+
+
+	UPROPERTY(meta = (BindWidget))
+		class UWidget* MainMenu;
+
+	UPROPERTY(meta = (BindWidget))
+		class UWidget* JoinMenu;
+
+
+
 };
