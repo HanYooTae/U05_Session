@@ -2,7 +2,10 @@
 #include "Global.h"
 #include "Widgets/CMenuBase.h"
 #include "Widgets/CMenu.h"
-#include "OnlineSubsystem.h"
+#include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
+
+const static FName SESSION_NAME = TEXT("MySession");
 
 UCGameInstance::UCGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -25,15 +28,11 @@ void UCGameInstance::Init()
 	{
 		CLog::Log("OSS Name : " + oss->GetSubsystemName().ToString());
 		
-		IOnlineSessionPtr sessionInterface = oss->GetSessionInterface();
-		if (sessionInterface.IsValid())
+		SessionInterface = oss->GetSessionInterface();
+		if (SessionInterface.IsValid())
 		{
-
-		}
-
-		else
-		{
-
+			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UCGameInstance::OnCreateSessionComplete);
+			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UCGameInstance::OnDestroySessionComplete);
 		}
 	}
 
@@ -41,6 +40,12 @@ void UCGameInstance::Init()
 	{
 		CLog::Log("OSS Not Found!");
 	}
+}
+
+void UCGameInstance::CreateSession()
+{
+	FOnlineSessionSettings sessionSettings;
+	SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
 }
 
 void UCGameInstance::LoadMenu()
@@ -67,15 +72,21 @@ void UCGameInstance::LoadInGameMenu()
 
 void UCGameInstance::Host()
 {
-	if (!!Menu)
-		Menu->Detach();
+	if (SessionInterface.IsValid())
+	{
+		auto session = SessionInterface->GetNamedSession(SESSION_NAME);
 
-	CLog::Print("Host");
-	//-> Everybody Move to Play Map
-	UWorld* world = GetWorld();
-	CheckNull(world);
+		if (!!session)
+		{
+			SessionInterface->DestroySession(SESSION_NAME);
+		}
 
-	world->ServerTravel("/Game/Maps/Play?listen");
+		else
+		{
+			CreateSession();
+		}
+	}
+
 }
 
 void UCGameInstance::Join(const FString& InAddress)
@@ -98,4 +109,37 @@ void UCGameInstance::ReturnToMainMenu()
 	APlayerController* controller = GetFirstLocalPlayerController();
 	CheckNull(controller);
 	controller->ClientTravel("/Game/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
+}
+
+void UCGameInstance::OnCreateSessionComplete(FName InSessionName, bool InSuccess)
+{
+	UE_LOG(LogTemp, Error, TEXT("CreateSessionComplete"));
+
+	// 技记 积己 角菩
+	if (InSuccess == false)
+	{
+		CLog::Log("Could not create Session!!");
+		return;
+	}
+	
+	//  技记 积己 己傍
+	CLog::Log("Session Name : " + InSessionName.ToString());
+
+	if (!!Menu)
+		Menu->Detach();
+
+	CLog::Print("Host");
+	//-> Everybody Move to Play Map
+	UWorld* world = GetWorld();
+	CheckNull(world);
+
+	world->ServerTravel("/Game/Maps/Play?listen");
+}
+
+void UCGameInstance::OnDestroySessionComplete(FName InSessionName, bool InSuccess)
+{
+	UE_LOG(LogTemp, Error, TEXT("DestroySessionComplete"));
+
+	if(InSuccess == true)
+		CreateSession();
 }
