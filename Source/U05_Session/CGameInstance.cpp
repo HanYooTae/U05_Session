@@ -33,6 +33,18 @@ void UCGameInstance::Init()
 		{
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UCGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UCGameInstance::OnDestroySessionComplete);
+			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UCGameInstance::OnFindSessionComplete);
+
+			//Find Session
+			SessionSearch = MakeShareable(new FOnlineSessionSearch());
+			if (SessionSearch.IsValid())
+			{
+				CLog::Log("Starting Find Session");
+
+				SessionSearch->bIsLanQuery = true;
+				SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+			}
+
 		}
 	}
 
@@ -44,8 +56,15 @@ void UCGameInstance::Init()
 
 void UCGameInstance::CreateSession()
 {
-	FOnlineSessionSettings sessionSettings;
-	SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
+	if (SessionInterface.IsValid())
+	{
+		FOnlineSessionSettings sessionSettings;
+		sessionSettings.bIsLANMatch = true;
+		sessionSettings.NumPublicConnections = 5;
+		sessionSettings.bShouldAdvertise = true;
+
+		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
+	}
 }
 
 void UCGameInstance::LoadMenu()
@@ -142,4 +161,22 @@ void UCGameInstance::OnDestroySessionComplete(FName InSessionName, bool InSucces
 
 	if(InSuccess == true)
 		CreateSession();
+}
+
+void UCGameInstance::OnFindSessionComplete(bool InSuccess)
+{
+	if (InSuccess == true && SessionSearch.IsValid())
+	{
+		CLog::Log("Finished Find Session");
+
+		SessionSearch->SearchResults;
+
+		CLog::Log("=====<Find Session Result>=====");
+		for (const auto& searchResult : SessionSearch->SearchResults)
+		{
+			CLog::Log(" -> Session ID : " + searchResult.GetSessionIdStr());
+			CLog::Log("Ping : " + FString::FromInt(searchResult.PingInMs));
+		}
+		CLog::Log("===============================");
+	}
 }

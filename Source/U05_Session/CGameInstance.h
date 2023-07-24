@@ -33,6 +33,7 @@ public:
 private:
 	void OnCreateSessionComplete(FName InSessionName, bool InSuccess);
 	void OnDestroySessionComplete(FName InSessionName, bool InSuccess);
+	void OnFindSessionComplete(bool InSuccess);
 
 	void CreateSession();
 
@@ -43,4 +44,5 @@ private:
 	class UCMenu* Menu;
 
 	IOnlineSessionPtr SessionInterface;
+	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 };
