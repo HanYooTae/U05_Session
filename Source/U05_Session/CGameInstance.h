@@ -30,6 +30,8 @@ public:
 
 		void ReturnToMainMenu() override;
 
+		void FindSession() override;
+
 private:
 	void OnCreateSessionComplete(FName InSessionName, bool InSuccess);
 	void OnDestroySessionComplete(FName InSessionName, bool InSuccess);

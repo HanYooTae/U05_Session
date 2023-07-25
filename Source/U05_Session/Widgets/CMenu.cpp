@@ -37,7 +37,29 @@ bool UCMenu::Initialize()
 
 void UCMenu::SetSessionList(TArray<FString> InSessionIDs)
 {
+	UWorld* world = GetWorld();
+	CheckNull(world);
 
+	SessionList->ClearChildren();
+
+
+	uint32 i = 0;
+	for (const auto& id : InSessionIDs)
+	{
+		UCSessionRow* sessionRow = CreateWidget<UCSessionRow>(world, SessionRowClass);
+		CheckNull(sessionRow);
+
+		sessionRow->SessionName->SetText(FText::FromString(id));
+		sessionRow->SetSelfIndex(this, i++);
+
+		SessionList->AddChild(sessionRow);
+	}
+}
+
+void UCMenu::SetSelectedRowIndex(uint32 InIndex)
+{
+	SelectedRowIndex = InIndex;
+	SelectedRowIndex.IsSet();
 }
 
 void UCMenu::HostServer()
@@ -50,20 +72,23 @@ void UCMenu::JoinServer()
 {
 	CheckNull(OwingGameInstance);
 
+	//SelectedRowIndex = 100;
+
 	//CheckNull(IPAddressField);
 	//const FString& address = IPAddressField->GetText().ToString();
 
-	//OwingGameInstance->Join(address);
+	if (SelectedRowIndex.IsSet())
+	{
+		CLog::Log("SelectedRowIndex : " + FString::FromInt(SelectedRowIndex.GetValue()));
+	}
+	else
+	{
+		CLog::Log("SelectedRowIndex is not set");
+	}
 
-	UWorld* world = GetWorld();
-	CheckNull(world);
+	OwingGameInstance->Join("");
 
-	UCSessionRow* sessionRow = CreateWidget<UCSessionRow>(world, SessionRowClass);
-	CheckNull(sessionRow);
-
-	//sessionRow->SessionName->SetText(FText::FromString("ChoBoMan..."));
-
-	SessionList->AddChild(sessionRow);
+	
 }
 
 void UCMenu::OpenJoinMenu()
@@ -71,6 +96,9 @@ void UCMenu::OpenJoinMenu()
 	CheckNull(MenuSwitcher);
 	CheckNull(JoinMenu);
 	MenuSwitcher->SetActiveWidget(JoinMenu);
+
+	if(!!OwingGameInstance)
+		OwingGameInstance->FindSession();
 }
 
 void UCMenu::OpenMainMenu()

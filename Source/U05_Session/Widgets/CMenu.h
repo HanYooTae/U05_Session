@@ -16,7 +16,8 @@ protected:
 	virtual bool Initialize() override;
 
 public:
-	SetSessionList(TArray<FString> InSessionIDs);
+	void SetSessionList(TArray<FString> InSessionIDs);
+	void SetSelectedRowIndex(uint32 InIndex);
 
 private:
 	UFUNCTION()
@@ -66,5 +67,7 @@ private:
 
 private:
 	TSubclassOf<class UUserWidget> SessionRowClass;
+	
+	TOptional<uint32> SelectedRowIndex;
 
 };
