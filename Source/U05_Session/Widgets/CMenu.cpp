@@ -40,8 +40,8 @@ void UCMenu::SetSessionList(TArray<FString> InSessionIDs)
 	UWorld* world = GetWorld();
 	CheckNull(world);
 
-	SessionList->ClearChildren();
 
+	SessionList->ClearChildren();
 
 	uint32 i = 0;
 	for (const auto& id : InSessionIDs)
@@ -60,6 +60,8 @@ void UCMenu::SetSelectedRowIndex(uint32 InIndex)
 {
 	SelectedRowIndex = InIndex;
 	SelectedRowIndex.IsSet();
+
+	SelectedSessionRow();
 }
 
 void UCMenu::HostServer()
@@ -117,4 +119,14 @@ void UCMenu::QuitGame()
 	CheckNull(controller);
 	
 	controller->ConsoleCommand("Quit");
+}
+
+void UCMenu::SelectedSessionRow()
+{
+	for (int32 i = 0; i < SessionList->GetChildrenCount(); i++)
+	{
+		UCSessionRow* sessionRow = Cast<UCSessionRow>(SessionList->GetChildAt(i));
+		if (!!sessionRow)
+			sessionRow->bSelfClicked = (SelectedRowIndex.IsSet() && i == SelectedRowIndex);
+	}
 }
