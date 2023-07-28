@@ -5,7 +5,7 @@
 #include "Interfaces/OnlineSessionInterface.h"
 #include "OnlineSessionSettings.h"
 
-const static FName SESSION_NAME = TEXT("MySession");
+const static FName SESSION_NAME = TEXT("GameSession");
 
 UCGameInstance::UCGameInstance(const FObjectInitializer& ObjectInitializer)
 {
@@ -51,10 +51,21 @@ void UCGameInstance::CreateSession()
 	if (SessionInterface.IsValid())
 	{
 		FOnlineSessionSettings sessionSettings;
-		sessionSettings.bIsLANMatch = false;
+
+		if(IOnlineSubsystem::Get()->GetSubsystemName() == "NULL")
+		{
+			sessionSettings.bIsLANMatch = true;
+			sessionSettings.bUsesPresence = false;
+		}
+		else    // Steam
+		{
+			sessionSettings.bIsLANMatch = false;
+			sessionSettings.bUsesPresence = true;
+		}
+
 		sessionSettings.NumPublicConnections = 5;
 		sessionSettings.bShouldAdvertise = true;
-		sessionSettings.bUsesPresence = true;
+		sessionSettings.Set(TEXT("SessionKey"), FString("SessionName"), EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 		SessionInterface->CreateSession(0, SESSION_NAME, sessionSettings);
 	}
@@ -141,7 +152,7 @@ void UCGameInstance::FindSession()
 
 void UCGameInstance::OnCreateSessionComplete(FName InSessionName, bool InSuccess)
 {
-	UE_LOG(LogTemp, Error, TEXT("CreateSessionComplete"));
+	//UE_LOG(LogTemp, Error, TEXT("CreateSessionComplete"));
 
 	// 技记 积己 角菩
 	if (InSuccess == false)
@@ -176,7 +187,7 @@ void UCGameInstance::OnFindSessionComplete(bool InSuccess)
 {
 	if (InSuccess == true && Menu != nullptr && SessionSearch.IsValid())
 	{
-		TArray<FString> foundSession;
+		TArray<FSessionData> foundSession;
 
 		CLog::Log("Finished Find Session");
 
@@ -187,7 +198,24 @@ void UCGameInstance::OnFindSessionComplete(bool InSuccess)
 		{
 			CLog::Log(" -> Session ID : " + searchResult.GetSessionIdStr());
 			CLog::Log("Ping : " + FString::FromInt(searchResult.PingInMs));
-			foundSession.Add(searchResult.GetSessionIdStr());
+
+			FSessionData data;
+			data.Name = searchResult.GetSessionIdStr();
+			data.MaxPlayers = searchResult.Session.SessionSettings.NumPublicConnections;
+			data.CurrentPlayers = data.MaxPlayers - searchResult.Session.NumOpenPublicConnections;
+			data.HostUserName = searchResult.Session.OwningUserName;
+
+			FString sessionName;
+			if (searchResult.Session.SessionSettings.Get(TEXT("SessionKey"), sessionName))
+			{
+				CLog::Log("Session.Value() => " + sessionName);
+			}
+			else
+			{
+				CLog::Log("Session Settings Key Not Found");
+			}
+
+			foundSession.Add(data);
 		}
 		CLog::Log("===============================");
 
